@@ -127,6 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+.DS_Store
 
 # Terraform configuration files
 # Local .terraform directories
@@ -163,3 +164,4 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+.deploy.env
