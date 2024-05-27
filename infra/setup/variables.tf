@@ -1,6 +1,6 @@
 variable "tf_state_bucket" {
   description = "The name of the S3 bucket to store the Terraform state file"
-  default     = "devops-recipe-app-api-tf-lock"
+  default     = "recipe-app-tf-state"
 }
 
 variable "tf_state_lock_table" {
