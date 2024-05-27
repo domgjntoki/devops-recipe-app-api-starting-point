@@ -7,7 +7,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "recipe-app-tf-state"
+    bucket         = "recipe-app-api-dongas"
     key            = "tf-state-setup"
     region         = "sa-east-1"
     encrypt        = true
