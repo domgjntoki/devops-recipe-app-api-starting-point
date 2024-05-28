@@ -21,3 +21,7 @@ variable "db_username" {
 variable "db_password" {
   description = "Password for the recipe app api database"
 }
+
+variable "ecr_proxy_image" {
+  description = "Path to the ECR repository with the proxy image"
+}
