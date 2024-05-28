@@ -43,3 +43,23 @@ resource "aws_cloudwatch_log_group" "ecs_task_logs" {
 resource "aws_ecs_cluster" "main" {
   name = "${local.prefix}-cluster"
 }
+
+resource "aws_ecs_task_definition" "api" {
+  family                   = "${local.prefix}-api"
+  container_definitions    = jsonencode([])
+  execution_role_arn       = aws_iam_role.task_execution_role.arn
+  task_role_arn            = aws_iam_role.app_task.arn
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = 256
+  memory                   = 512
+
+  volume {
+    name = "static"
+  }
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "X86_64"
+  }
+}
