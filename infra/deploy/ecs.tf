@@ -146,3 +146,37 @@ resource "aws_ecs_task_definition" "api" {
     cpu_architecture        = "X86_64"
   }
 }
+
+resource "aws_security_group" "ecs_service" {
+  description = "Access rules for the ECS service"
+  name        = "${local.prefix}-ecs-service"
+  vpc_id      = aws_vpc.main.id
+
+  # Outbund access to endpoints
+  egress {
+    from_port   = 443
+    to_port     = 433
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # RDS connectivity
+  ingress {
+    from_port = 5432
+    to_port   = 5432
+    protocol  = "tcp"
+    cidr_blocks = [
+      aws_subnet.private_a.cidr_block,
+      aws_subnet.private_b.cidr_block
+    ]
+  }
+
+  # HTTP inbound access
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
