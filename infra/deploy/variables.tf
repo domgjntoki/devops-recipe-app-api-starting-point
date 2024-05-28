@@ -25,3 +25,11 @@ variable "db_password" {
 variable "ecr_proxy_image" {
   description = "Path to the ECR repository with the proxy image"
 }
+
+variable "ecr_app_image" {
+  description = "Path to the ECR repository with the app image"
+}
+
+variable "django_secret_key" {
+  description = "Django secret key"
+}
