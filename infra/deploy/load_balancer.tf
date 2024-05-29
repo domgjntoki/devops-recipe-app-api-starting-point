@@ -29,5 +29,11 @@ resource "aws_security_group" "lb" {
     to_port     = 8000
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
 
+resource "aws_lb" "api" {
+  name               = "${local.prefix}-lb"
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb.id]
+  subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
 }
