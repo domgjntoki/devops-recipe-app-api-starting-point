@@ -37,3 +37,15 @@ resource "aws_lb" "api" {
   security_groups    = [aws_security_group.lb.id]
   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
 }
+
+resource "aws_lb_target_group" "api" {
+  name        = "${local.prefix}-api"
+  port        = 8000
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+
+  health_check {
+    path = "/api/health-check/"
+  }
+}
