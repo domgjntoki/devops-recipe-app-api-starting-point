@@ -3,11 +3,10 @@
 #################
 
 resource "aws_security_group" "lb" {
-  description = "Configure access for the Application Load Balancer."
+  description = "Configure access for the Application Load Balancer"
   name        = "${local.prefix}-alb-access"
   vpc_id      = aws_vpc.main.id
 
-  # Inbound access
   ingress {
     protocol    = "tcp"
     from_port   = 80
@@ -22,7 +21,6 @@ resource "aws_security_group" "lb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Outbound access
   egress {
     protocol    = "tcp"
     from_port   = 8000
@@ -34,16 +32,16 @@ resource "aws_security_group" "lb" {
 resource "aws_lb" "api" {
   name               = "${local.prefix}-lb"
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb.id]
   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+  security_groups    = [aws_security_group.lb.id]
 }
 
 resource "aws_lb_target_group" "api" {
   name        = "${local.prefix}-api"
-  port        = 8000
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
+  port        = 8000
 
   health_check {
     path = "/api/health-check/"
