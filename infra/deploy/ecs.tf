@@ -193,6 +193,7 @@ resource "aws_ecs_service" "api" {
   launch_type            = "FARGATE"
   platform_version       = "1.4.0"
   enable_execute_command = true
+  depends_on             = [aws_lb_listener.api]
 
   network_configuration {
     subnets = [
