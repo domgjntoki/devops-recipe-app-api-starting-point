@@ -1,6 +1,6 @@
-#########################################
-# CS Cluster for running app on Fargate #
-#########################################
+##
+# ECS Cluster for running app on Fargate.
+##
 
 resource "aws_iam_policy" "task_execution_role_policy" {
   name        = "${local.prefix}-task-exec-role-policy"
@@ -45,97 +45,100 @@ resource "aws_ecs_cluster" "main" {
 }
 
 resource "aws_ecs_task_definition" "api" {
-  family = "${local.prefix}-api"
-  container_definitions = jsonencode([
-    {
-      name              = "api"
-      image             = var.ecr_app_image
-      essential         = true
-      memoryReservation = 256
-      user              = "django-user"
-      environment = [
-        {
-          name  = "DJANGO_SECRET_KEY"
-          value = var.django_secret_key
-        },
-        {
-          name  = "DB_HOST"
-          value = aws_db_instance.main.address
-        },
-        {
-          name  = "DB_NAME"
-          value = aws_db_instance.main.db_name
-        },
-        {
-          name  = "DB_USER"
-          value = aws_db_instance.main.username
-        },
-        {
-          name  = "DB_PASS"
-          value = aws_db_instance.main.password
-        },
-        {
-          name  = "ALLOWED_HOSTS"
-          value = "*"
-        }
-      ]
-      mountPoints = [
-        {
-          readOnly      = false
-          containerPath = "/vol/web/static"
-          sourceVolume  = "static"
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
-          awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "api"
-        }
-      }
-    },
-    {
-      name              = "proxy"
-      image             = var.ecr_proxy_image
-      essential         = true
-      memoryReservation = 256
-      user              = "nginx"
-      portMappings = [
-        {
-          containerPort = 8000
-          hostPort      = 8000
-        }
-      ]
-      environment = [
-        {
-          name  = "APP_HOST"
-          value = "127.0.0.1"
-        }
-      ]
-      mountPoints = [
-        {
-          readOnly      = true
-          containerPath = "/vol/static"
-          sourceVolume  = "static"
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
-          awslogs-region        = data.aws_region.current.name
-          awslogs-stream-prefix = "proxy"
-        }
-      }
-    }
-  ])
-  execution_role_arn       = aws_iam_role.task_execution_role.arn
-  task_role_arn            = aws_iam_role.app_task.arn
-  network_mode             = "awsvpc"
+  family                   = "${local.prefix}-api"
   requires_compatibilities = ["FARGATE"]
+  network_mode             = "awsvpc"
   cpu                      = 256
   memory                   = 512
+  execution_role_arn       = aws_iam_role.task_execution_role.arn
+  task_role_arn            = aws_iam_role.app_task.arn
+
+  container_definitions = jsonencode(
+    [
+      {
+        name              = "api"
+        image             = var.ecr_app_image
+        essential         = true
+        memoryReservation = 256
+        user              = "django-user"
+        environment = [
+          {
+            name  = "DJANGO_SECRET_KEY"
+            value = var.django_secret_key
+          },
+          {
+            name  = "DB_HOST"
+            value = aws_db_instance.main.address
+          },
+          {
+            name  = "DB_NAME"
+            value = aws_db_instance.main.db_name
+          },
+          {
+            name  = "DB_USER"
+            value = aws_db_instance.main.username
+          },
+          {
+            name  = "DB_PASS"
+            value = aws_db_instance.main.password
+          },
+          {
+            name  = "ALLOWED_HOSTS"
+            value = "*"
+          }
+        ]
+        mountPoints = [
+          {
+            readOnly      = false
+            containerPath = "/vol/web/static"
+            sourceVolume  = "static"
+          }
+        ],
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
+            awslogs-region        = data.aws_region.current.name
+            awslogs-stream-prefix = "api"
+          }
+        }
+      },
+      {
+        name              = "proxy"
+        image             = var.ecr_proxy_image
+        essential         = true
+        memoryReservation = 256
+        user              = "nginx"
+        portMappings = [
+          {
+            containerPort = 8000
+            hostPort      = 8000
+          }
+        ]
+        environment = [
+          {
+            name  = "APP_HOST"
+            value = "127.0.0.1"
+          }
+        ]
+        mountPoints = [
+          {
+            readOnly      = true
+            containerPath = "/vol/static"
+            sourceVolume  = "static"
+          }
+        ]
+        logConfiguration = {
+          logDriver = "awslogs"
+          options = {
+            awslogs-group         = aws_cloudwatch_log_group.ecs_task_logs.name
+            awslogs-region        = data.aws_region.current.name
+            awslogs-stream-prefix = "proxy"
+          }
+        }
+      }
+    ]
+  )
 
   volume {
     name = "static"
@@ -148,11 +151,11 @@ resource "aws_ecs_task_definition" "api" {
 }
 
 resource "aws_security_group" "ecs_service" {
-  description = "Access rules for the ECS service"
+  description = "Access rules for the ECS service."
   name        = "${local.prefix}-ecs-service"
   vpc_id      = aws_vpc.main.id
 
-  # Outbund access to endpoints
+  # Outbound access to endpoints
   egress {
     from_port   = 443
     to_port     = 443
@@ -161,24 +164,23 @@ resource "aws_security_group" "ecs_service" {
   }
 
   # RDS connectivity
-  ingress {
+  egress {
     from_port = 5432
     to_port   = 5432
     protocol  = "tcp"
     cidr_blocks = [
       aws_subnet.private_a.cidr_block,
-      aws_subnet.private_b.cidr_block
+      aws_subnet.private_b.cidr_block,
     ]
   }
 
   # HTTP inbound access
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 8000
+    to_port     = 8000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
 }
 
 resource "aws_ecs_service" "api" {
